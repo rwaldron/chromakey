@@ -1,0 +1,86 @@
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <style> 
+      body {
+        background: black;
+      }
+      /*
+      canvas, img {
+        border :1px solid #444444;
+        background-image: url(boston.jpg);
+        
+        
+      }*/
+
+      div {
+        float: left;
+        border: 1px solid #444444;
+        padding:10px;
+        margin: 10px;
+        background:#3B3B3B;
+      }
+      #chroCanvas {
+        background-image: url(boston.jpg);
+        background-repeat: no-repeat;
+      }
+      video {
+        /*width:320px;
+        height: 192px;*/
+      } 
+    </style>  
+    <script type="text/javascript" src="chroma-key.js"></script> 
+  </head> 
+ 
+  <body> 
+
+
+    <div> 
+      
+      <video id="okgo" width="320" height="192" controls >
+        <source
+          src="whiteknuckles2.ogg"
+          type='video/ogg'>       
+      </video>
+    
+    </div> 
+    
+    
+    <div> 
+
+      <video id="video" controls >
+        <source id='ogv'
+          src="video.ogv"
+          type='video/ogg'>       
+      </video>
+
+    </div> 
+
+    <div> 
+      <img id="green" src="screens/chroma-green-0-235-52-320x192.png">
+
+      
+    </div>     
+    <div> 
+      <img id="blue" src="blue.jpg" width="320" height="192" >
+
+      
+    </div>         
+
+
+    <div> 
+      <img id="lego" src="lego.png">
+
+      
+    </div>         
+    <!--
+    <div> 
+      
+      
+      <canvas id="chroma-ref" width="320" height="192" ></canvas>
+      <canvas id="chroma-chr" width="320" height="192" ></canvas>
+    
+    </div> 
+      -->
+  </body> 
+</html> 
