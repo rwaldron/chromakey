@@ -1,7 +1,7 @@
 
 (function ( global ) {
   
-  var document = global.document, 
+  var doc = global.document, 
   
   //  Inspired by Underscore.js's _.range(), only...
   //  deliriously fast in Chrome: http://jsperf.com/range-vs-range
@@ -24,7 +24,7 @@
   //  http://130.113.54.154/~monger/hsl-rgb.html
   rgbHue = function( r, g, b ){
     
-    //  Convert to 0-1 rang
+    //  Convert to 0-1 range
     r /= 255, g /= 255, b /= 255;
     
     //  Determine the max/min values 
@@ -68,17 +68,16 @@
       L: lum
     };    
   }, 
-  isArray = Array.isArray || function( obj ) {
-    return toString.call(obj) === '[object Array]';
-  }, 
   nodeData = {
     video : {
+      ready: "readyState",
       load: "loadeddata", 
       width: "videoWidth", 
       height: "videoHeight", 
       action: "throttle"
     },
     img : {
+      ready: "complete", 
       load: "load", 
       width: "width", 
       height: "height",
@@ -101,7 +100,7 @@
     options = options || {};
     
     //  Store a ref to the media element - needs better checks
-    this.media = document.getElementById( id );
+    this.media = doc.getElementById( id ) || doc.getElementsByTagName( id )[0] ;
     
     //  Key Matching
     if ( options.match && typeof options.match === "string" ) {
@@ -133,7 +132,6 @@
       }
     }
     
-    //console.log(this.key);
     
     //  Output scaling
     this.scale = options.scale || 1;
@@ -148,57 +146,70 @@
     this.data = nodeData[ this.type ];
     
     
-    if ( this.media ) {
     
-      this.media.addEventListener( this.data.load , function() {
-          
-        var foo = self.media;
-        
-        //  Store a ref to the video element dimensions
-        self.width = ( options.width || self.media[ self.data.width ] ) * self.scale;
-        self.height = ( options.height || self.media[ self.data.height ] ) * self.scale; 
+    
+    var initKeying = function() {
 
-        //  Create canvases, auto-id unless provided
-        self.reference = self.canvas( options.reference || "chroma-ref-" + self.guid );
-        self.chromakey = self.canvas( options.chromakey || "chroma-chr-" + self.guid );
+      var foo = self.media;
 
-        //  Stash the reference canvas
-        self.reference.style.display = "none";
-        
-        
-        //  If style specified, apply
-        if ( options.css ) {
-          for ( var prop in options.css ) {
-            self.chromakey.style[ prop ] = options.css[ prop ];
-          }
+      //  Store a ref to the video element dimensions
+      self.width = ( options.width || self.media[ self.data.width ] ) * self.scale;
+      self.height = ( options.height || self.media[ self.data.height ] ) * self.scale; 
+
+      //  Create canvases, auto-id unless provided
+      self.reference = self.canvas( options.reference || "chroma-ref-" + self.guid );
+      self.chromakey = self.canvas( options.chromakey || "chroma-chr-" + self.guid );
+
+      //  Stash the reference canvas
+      self.reference.style.display = "none";
+
+
+      //  If style specified, apply
+      if ( options.css ) {
+        for ( var prop in options.css ) {
+          self.chromakey.style[ prop ] = options.css[ prop ];
         }
+      }
 
-        //  Store refs to canvas contexts
-        self.referenceContext = self.reference.getContext("2d");
-        self.chromakeyContext = self.chromakey.getContext("2d");
+      //  Store refs to canvas contexts
+      self.referenceContext = self.reference.getContext("2d");
+      self.chromakeyContext = self.chromakey.getContext("2d");
 
 
-        //  If just an image, then process immediately
-        if ( self.data.action === "process" ) {
-          
-          self.process();
-          
-        } else {
-        
-          //  Throttling 
-          self.timeout = options.timeout || 0;        
-        
-          //  Register listener to handle playback rendering
-          self.media.addEventListener( "play", function() {
+      //  If just an image, then process immediately
+      if ( self.data.action === "process" ) {
 
-            //  Call the processing throttler
-            self.throttle();
+        self.process();
 
-          }, false);  
-        }
-        
-        
-      }, false);
+      } else {
+
+        //  Throttling 
+        self.timeout = options.timeout || 0;        
+
+        //  Register listener to handle playback rendering
+        self.media.addEventListener( "play", function() {
+
+          //  Call the processing throttler
+          self.throttle();
+
+        }, false);  
+      }
+    };
+    
+    //  Media exists
+    if ( this.media ) {
+      
+      //  Media is ready to process
+      if ( this.media[ this.data.ready ] ) {
+      
+        initKeying();
+      
+      //  Media is not ready, listen for readyness
+      } else {
+      
+        this.media.addEventListener( this.data.load , initKeying, false);
+      
+      }
     }
     
     
@@ -207,7 +218,7 @@
 
   ChromaKey.prototype.canvas = function( id ) {
     
-    var canvas = document.createElement("canvas");
+    var canvas = doc.createElement("canvas");
     
     this.media.parentNode.appendChild( canvas );
     
@@ -264,6 +275,10 @@
     //  Iterate sets of 4 pixel indices this frame  
     for ( idx = 0; idx < frameLen; idx = idx + 4 ) {
       
+      
+      //  TODO: This entire process needs work...
+      //   - anti-aliasing
+      //   - active contour
 
       //  Get HSL for this pixel
       hsl = rgbHue( frame.data[ idx + 0 ], 
@@ -303,66 +318,3 @@
   
 
 })( this );
-
-
-
-
-
-document.addEventListener( "DOMContentLoaded", function() {
-  
-  var bgcss =  {
-        "background-image": "url(boston.jpg)", 
-        "border" : "1px solid #444444"
-      }, 
-      
-      okgo, video, green, blue, lego;
-  
-  
-  
-  okgo = chromaKey( "okgo", {
-            scale: 1, 
-            //match: [ 30, 50, 150 ],
-            match: "blue", 
-            width: 320, 
-            height: 192, 
-            css: bgcss
-          });
-                
-  video = chromaKey( "video", {
-            scale: 1, 
-            match: [ 100, 100, 43 ], 
-
-            css: bgcss
-          });
-
-  green = chromaKey( "green", {
-            scale: 1, 
-            match: [ 0, 230, 52 ],
-            css: bgcss
-
-          });
-
-  blue = chromaKey( "blue", {
-            scale: 1, 
-            match: [ 0, 230, 150 ],
-
-            width: 320, 
-            height: 192,                   
-            css: bgcss
-
-          });
-  
-  lego = chromaKey( "lego", {
-            width: 321, 
-            height: 439, 
-            scale: 1, 
-            match: [ 100, 100, 43 ],
-            css: bgcss
-
-          });                
-                
-                
-  console.log( okgo, video, green, blue, lego );                
-  
-
-}, false);
