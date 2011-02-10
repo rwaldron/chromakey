@@ -64,8 +64,8 @@
     return {
       //  Scale conversion to integer  
       H: hue * 60, 
-      S: sat, 
-      L: lum
+      S: sat * 100, 
+      L: lum * 100
     };    
   }, 
   nodeData = {
@@ -83,7 +83,11 @@
       height: "height",
       action: "process"
     }
-  }, 
+  },
+  keyData = {
+    green: [ 0, 255, 0 ],
+    blue: [ 50, 70, 135 ]
+  },
   hueData = {
     green: range( 59, 159 ), 
     blue: range( 160, 260 )
@@ -109,18 +113,18 @@
       //console.log(hueData[ options.match ]);
       
       this.key = hueData[ options.match ] && options.match;
-      
+      this.hsl = rgbHue.apply( null, keyData[ this.key ] );
+
     } else {
       
       
       //  Translate from array
       options.match = options.match || [ 100, 100, 100 ];
       
-      this.hue = Math.ceil( 
-                    rgbHue.apply( null, options.match ).H 
-                 );
       
-
+      this.hsl = rgbHue.apply( null, options.match );
+      this.hue = Math.ceil( this.hsl.H );
+      
       //  Match type branching
       this.key = "";
 
@@ -131,7 +135,6 @@
         }
       }
     }
-    
     
     //  Output scaling
     this.scale = options.scale || 1;
@@ -145,7 +148,8 @@
     //  Node specific properties
     this.data = nodeData[ this.type ];
     
-    
+    //  Caching for last frame data
+    this.last = [];
     
     
     var initKeying = function() {
@@ -257,18 +261,25 @@
   
   ChromaKey.prototype.process = function() {
       
-    var frame, frameLen, r, g, b, idx, hsl, hueIdx;
-
+    var width = this.width, 
+        height = this.height, 
+        last, frame, frameLen, r, g, b, idx, hsl, hueIdx;
+    
     
     //  Draw current video frame
-    this.referenceContext.drawImage( this.media, 0, 0, this.width, this.height );
+    this.referenceContext.drawImage( this.media, 0, 0, width, height );
 
     //  Return current 32-bit CanvasPixelArray data
-    frame = this.referenceContext.getImageData( 0, 0, this.width, this.height );
+    frame = this.referenceContext.getImageData( 0, 0, width, height );
 
     //  Cache the length of the current frame.data ( CanvasPixelArray )
     frameLen = frame.data.length;
     
+
+    //  Reference last frame, allows us to speed up pixel writing
+    //  by skipping pixels that havent changed
+    last = this.last;
+
     //  Each "frame" populates 4 indices of the ImageData/
     //  CanvasPixelData array, representing R, G, B, A
 
@@ -280,32 +291,40 @@
       //   - anti-aliasing
       //   - active contour
 
-      //  Get HSL for this pixel
-      hsl = rgbHue( frame.data[ idx + 0 ], 
-                    frame.data[ idx + 1 ], 
-                    frame.data[ idx + 2 ] 
-                    );
-
-      hueIdx = hueData[ this.key ].indexOf( Math.ceil( hsl.H ) );
       
-      if ( hueIdx > -1 ) {
-        
-        //  Setting the pixel's `alpha` value to 0 will result in transparency
-        //  frame.data[ idx + 3 ] = hueIdx / hueData[ this.key ].length;
-        
-        //if ( hsl.S > 0.25 && hsl.L > 0.15 ) {
-        if ( hsl.S > 0.25 && hsl.L > 0.15 ) {
+      if ( last.length && ( Math.ceil(last[ idx + 0 ]) === Math.ceil(frame.data[ idx + 0 ]) &&
+                             Math.ceil(last[ idx + 1 ]) === Math.ceil(frame.data[ idx + 1 ]) && 
+                               Math.ceil(last[ idx + 2 ]) === Math.ceil(frame.data[ idx + 2 ]) ) ) {
+
+        frame.data[ idx + 3 ] = last[ idx + 3 ];
+
+      } else {
+      
+        //  Get HSL for this pixel
+        testHsl = rgbHue( frame.data[ idx + 0 ], 
+                          frame.data[ idx + 1 ], 
+                          frame.data[ idx + 2 ] 
+                        );
+
+        hueIdx = hueData[ this.key ].indexOf( Math.ceil( testHsl.H ) );
+
+        if ( hueIdx > -1 ) {
+
+          //  Setting the pixel's `alpha` value to 0 will result in transparency
+          //  frame.data[ idx + 3 ] = hueIdx / hueData[ this.key ].length;
+
+          //if ( testHsl.S  >= this.hsl.S - 10 && testHsl.L >= this.hsl.L - 10  ) {// && hsl.L < 75
+          if ( testHsl.S > 25 && testHsl.L > 1 ) {
           
-          //console.log(hsl.L);
-          
-          frame.data[ idx + 3 ] = hsl.S + hsl.L / 2;
-        
+            frame.data[ idx + 3 ] = 0;
+
+          }
         }
-        
-      }
-
+      } 
     }
-
+    
+    this.last = frame.data;
+    
     //  Draw back to the chroma canvas
     this.chromakeyContext.putImageData( frame, 0, 0 );
   };
