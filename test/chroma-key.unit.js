@@ -1,5 +1,5 @@
 var bgcss =  {
-      "background-image": "url(../boston.jpg)", 
+      "background-image": "url(assets/boston.jpg)", 
       "border" : "1px solid #444444"
     }, 
     $fixture, $fixtureHTML; 
