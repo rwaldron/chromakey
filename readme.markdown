@@ -1,3 +1,4 @@
-TODO: 
+Open Source, like whoa
 
-Unit tests
+
+Contributions welcome, one rule - any code should follow this guide: https://gist.github.com/793649
