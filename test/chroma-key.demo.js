@@ -59,7 +59,7 @@ document.addEventListener( "DOMContentLoaded", function() {
           });
 
   chromaKey( "okgo", {
-    scale: .25, 
+    scale: .5, 
     //match: [ 30, 50, 150 ],
     match: "blue", 
 

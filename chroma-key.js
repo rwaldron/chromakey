@@ -311,9 +311,9 @@
       //   - active contour
 
       
-      if ( last.length && ( ceil( last[ idx + 0 ] ) === ceil( frame.data[ idx + 0 ] ) &&
-                             ceil( last[ idx + 1 ] ) === ceil( frame.data[ idx + 1 ] ) && 
-                               ceil( last[ idx + 2 ] ) === ceil( frame.data[ idx + 2 ] ) ) ) {
+      if ( last.length && ( ceils[ idx + 0 ] === ceil( frame.data[ idx + 0 ] ) &&
+                             ceils[ idx + 1 ] === ceil( frame.data[ idx + 1 ] ) && 
+                               ceils[ idx + 2 ] === ceil( frame.data[ idx + 2 ] ) ) ) {
 
         frame.data[ idx + 3 ] = last[ idx + 3 ];
 
