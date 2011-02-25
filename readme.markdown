@@ -1,4 +1,8 @@
-Open Source, like whoa
+# Open Source Chroma Key
 
 
-Contributions welcome, one rule - any code should follow this guide: https://gist.github.com/793649
+Contributions welcome, as long as they:
+
+ - Conform to the style guide: [https://gist.github.com/793649]()
+
+ - Include unit tests
