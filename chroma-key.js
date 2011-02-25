@@ -161,8 +161,6 @@
     
     var initKeying = function() {
 
-      var foo = self.media;
-
       //  Store a ref to the video element dimensions
       self.width = ( options.width || self.media[ self.data.width ] ) * self.scale;
       self.height = ( options.height || self.media[ self.data.height ] ) * self.scale; 
@@ -222,7 +220,6 @@
       
       }
     }
-    
     
     return this;
   }
