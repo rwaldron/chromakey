@@ -1,4 +1,4 @@
-# Open Source Chroma Key
+# ChromaKey.js
 
 
 Contributions welcome, as long as they:
