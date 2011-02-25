@@ -1,7 +1,9 @@
-
-(function ( global ) {
+(function ( global, Math ) {
   
   var doc = global.document, 
+  
+  //  Minor method lookup performance improvement
+  ceil = Math.ceil, 
   
   //  Inspired by Underscore.js's _.range(), only...
   //  deliriously fast in Chrome: http://jsperf.com/range-vs-range
@@ -9,7 +11,7 @@
     var start = start || 0,
         stop  = stop || start || 0,
         step  = step || 1,
-        len   = Math.ceil( (stop - start) / step) || 0 ,
+        len   = ceil( (stop - start) / step) || 0 ,
         idx   = 0,
         range = [];
     
@@ -123,7 +125,7 @@
       
       
       this.hsl = rgbHue.apply( null, options.match );
-      this.hue = Math.ceil( this.hsl.H );
+      this.hue = ceil( this.hsl.H );
       
       //  Match type branching
       this.key = "";
@@ -148,8 +150,13 @@
     //  Node specific properties
     this.data = nodeData[ this.type ];
     
-    //  Caching for last frame data
+    //  Raw caching for last frame data
     this.last = [];
+
+    //  Ceil caching for last frame data
+    //  Will be set to Uint16Array
+    this.Uint16Ceil;
+    
     
     
     var initKeying = function() {
@@ -262,7 +269,8 @@
   ChromaKey.prototype.process = function() {
       
     var width = this.width, 
-        height = this.height, 
+        height = this.height,
+        ceils = [], 
         last, frame, frameLen, r, g, b, idx, hsl, hueIdx;
     
     
@@ -276,10 +284,21 @@
     frameLen = frame.data.length;
     
 
-    //  Reference last frame, allows us to speed up pixel writing
+    //  Reference last frame raw, allows us to speed up pixel writing
     //  by skipping pixels that havent changed
     last = this.last;
-
+    
+    //  Reference last frame ceil, allows us to speed up pixel writing
+    //  by skipping pixels that havent changed    
+    
+    if ( !this.Uint16Ceil ) {
+      
+      this.Uint16Ceil = new Uint16Array( frameLen );
+    
+    }
+    
+    ceils = this.Uint16Ceil;
+    
     //  Each "frame" populates 4 indices of the ImageData/
     //  CanvasPixelData array, representing R, G, B, A
 
@@ -292,21 +311,26 @@
       //   - active contour
 
       
-      if ( last.length && ( Math.ceil(last[ idx + 0 ]) === Math.ceil(frame.data[ idx + 0 ]) &&
-                             Math.ceil(last[ idx + 1 ]) === Math.ceil(frame.data[ idx + 1 ]) && 
-                               Math.ceil(last[ idx + 2 ]) === Math.ceil(frame.data[ idx + 2 ]) ) ) {
+      if ( last.length && ( ceil( last[ idx + 0 ] ) === ceil( frame.data[ idx + 0 ] ) &&
+                             ceil( last[ idx + 1 ] ) === ceil( frame.data[ idx + 1 ] ) && 
+                               ceil( last[ idx + 2 ] ) === ceil( frame.data[ idx + 2 ] ) ) ) {
 
         frame.data[ idx + 3 ] = last[ idx + 3 ];
 
       } else {
-      
+        
+        //  Ceil cache
+        for ( var c = 0; c < 3; c++ ) {
+          ceils[ idx + c ] = ceil( frame.data[ idx + c ] );
+        }
+        
         //  Get HSL for this pixel
         testHsl = rgbHue( frame.data[ idx + 0 ], 
                           frame.data[ idx + 1 ], 
                           frame.data[ idx + 2 ] 
                         );
 
-        hueIdx = hueData[ this.key ].indexOf( Math.ceil( testHsl.H ) );
+        hueIdx = hueData[ this.key ].indexOf( ceil( testHsl.H ) );
 
         if ( hueIdx > -1 ) {
 
@@ -325,8 +349,11 @@
     
     this.last = frame.data;
     
+    this.Uint16Ceil = ceils;
+    
     //  Draw back to the chroma canvas
     this.chromakeyContext.putImageData( frame, 0, 0 );
+
   };
 
 
@@ -336,4 +363,4 @@
   }
   
 
-})( this );
+})( this, Math );

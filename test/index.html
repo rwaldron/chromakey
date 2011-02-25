@@ -3,14 +3,40 @@
 <head>
   <title>chromaKey Test Suite</title>
   <link rel="stylesheet" href="qunit/qunit.css" type="text/css" media="screen">
+  <style>
+    
+    #chroma-demo-iframe {
+      background:white;
+    }
+    #chroma-demo-panel {
+      position: absolute;
+      display: none;
+      z-index: 9999;
+      background: white;
+    }
+  
+  </style>
+  
   <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
   <script type="text/javascript" src="qunit/qunit.js"></script>
+  <script type="text/javascript" src="chroma-demo-runner.js"></script>
+  
   <script type="text/javascript" src="../chroma-key.js"></script> 
   
   <script type="text/javascript" src="chroma-key.unit.js"></script>
   
+  
+  
 </head>
 <body>
+  
+  <button id="chroma-demo-trigger">Run Demo</button>
+  
+  <div id="chroma-demo-panel">
+    <a href="">close</a>
+    <iframe id="chroma-demo-iframe"></iframe>
+  </div>
+  
   <h1 id="qunit-header">chromaKey Test Suite</h1>
   <h2 id="qunit-banner"></h2>
   <div id="qunit-testrunner-toolbar"></div>
@@ -18,7 +44,8 @@
   <ol id="qunit-tests"></ol>
   <div id="qunit-fixture">
   </div>
-
+    
+    
 
     <div> 
       <video id="okgo" width="320" height="192" controls >
@@ -33,10 +60,14 @@
       <img id="blue" src="assets/blue.jpg" width="320" height="192" >
     </div>         
 
-
+      
     <div> 
       <img id="lego" src="assets/lego.png">
     </div>    
+    
+    <div>
+      <img id="green16px" src="screens/chroma-green-0-235-52-16px.png">
+    
         
 </body>
 </html>

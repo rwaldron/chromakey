@@ -132,3 +132,28 @@ asyncTest("media node types", function() {
   }, 500);    
     
 });
+
+/*
+asyncTest("alpha testing", function() {
+  
+ expect(2);
+ 
+ setTimeout(function() { 
+ 
+   var green = chromaKey( "green16px", {
+                scale: 1, 
+                match: "green",
+                css: bgcss
+              });
+    
+    console.log(green16px.media);
+    
+    equal( green16px.media.nodeName, "IMG", "green16px.media.nodeName is IMG" );
+
+    start();
+  
+  }, 500);    
+    
+});
+
+*/
